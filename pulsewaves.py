@@ -1,6 +1,5 @@
 from struct import unpack
 import numpy as np
-import os
 
 class PulseWaves(object):
     def __init__(self, pls_file):
@@ -90,6 +89,59 @@ class PulseWaves(object):
         
         return Waves(self, pulse_record)
 
+    def export(self, pulse_records = None, filename = None, compression = 'gzip'):
+        import sys
+        import h5py
+
+        if pulse_records is None:
+            pulse_records = range(self.num_pulses)
+            show_progress = True
+        else:
+            show_progress = False
+
+        if filename is None:
+            filename = self.filename[:-4] + '.hdf'
+
+        #create the HDF5 file handle
+        f = h5py.File(filename, 'w')
+        c = f.create_dataset('XYZ', (1024, 3), maxshape = (None, 3), dtype = 'float64', compression = compression)
+        a = f.create_dataset('Amplitude', (1024, 2), maxshape = (None, 2), dtype = 'int32', compression = compression)
+        s = f.create_dataset('Index', (1024,), maxshape = (None,), dtype = 'uint32', compression = compression)
+
+        #iterate through pulse records
+        m = 0
+        k = 0
+        for i in pulse_records:
+            if show_progress:
+                sys.stdout.write('\b'*50+' %01d%% export pulse %06d' % (int(100 * i/self.num_pulses), i))
+                sys.stdout.flush()
+
+            r = PulseRecord(self, i)
+            w = Waves(self, r)
+            d = np.c_[w.segments[0], np.zeros(w.segments[0].shape[0])]
+            for j in range(1, len(w.segments)):
+                d = np.concatenate((d, np.c_[w.segments[j], j * np.ones(w.segments[j].shape[0])]))
+
+            n = d.shape[0]
+            if len(c) <= m+n:
+                c.resize(m+n+1024, 0)
+                a.resize(m+n+1024, 0)
+                s.resize(m+n+1024, 0)
+
+            c[m:m+n, :] = d[:, :3]
+            a[m:m+n, :] = d[:, 3:].astype('int32')
+            s[k] = m
+            k += 1
+            m += n
+
+        s[k] = m
+        s.resize(k+1, 0)
+        c.resize(m, 0)
+        a.resize(m, 0)
+        f.close()
+        if show_progress:
+            sys.stdout.write('\b'*50+' 100%\n')
+
 class PulseRecord(object):
     def __init__(self, header, pulse_number):
         with open(header.filename, 'rb') as f:
@@ -131,7 +183,7 @@ class Waves(object):
         sample_records = descriptor.sampling_records
 
         #read header
-        self.filename = os.path.splitext(header.filename)[0]+'.wvs'
+        self.filename = header.filename[:-4] + '.wvs'
         with open(self.filename, 'rb') as f:
             self.file_sig = f.read(16).decode("utf-8").strip("\x00")
             self.compression = unpack("I", f.read(4))[0]
