@@ -17,7 +17,7 @@ class PulseWaves(object):
             self.proj_GUID3 = unpack("H", f.read(2))[0]
             self.proj_GUID3 = unpack("B"*8, f.read(8))[0]
             self.sys_id = f.read(64).decode("utf-8").strip("\x00")
-            self.software =	f.read(64).decode("utf-8").strip("\x00")
+            self.software = f.read(64).decode("utf-8").strip("\x00")
             self.file_day = unpack("H", f.read(2))[0]
             self.file_year = unpack("H", f.read(2))[0]
             self.version_maj = unpack("B", f.read(1))[0]
@@ -29,19 +29,19 @@ class PulseWaves(object):
             self.pulse_attr = unpack("=L", f.read(4))[0]
             self.pulse_size = unpack("=L", f.read(4))[0]
             self.pulse_compression = unpack("=L", f.read(4))[0]
-            self.reserved =	unpack("q", f.read(8))[0]
-            self.num_vlr =	unpack("I", f.read(4))[0]
-            self.num_avlr =	unpack("!l", f.read(4))[0]
-            self.t_scale  =	unpack("d", f.read(8))[0]
-            self.t_offset =	unpack("d", f.read(8))[0]
+            self.reserved = unpack("q", f.read(8))[0]
+            self.num_vlr = unpack("I", f.read(4))[0]
+            self.num_avlr = unpack("!l", f.read(4))[0]
+            self.t_scale  = unpack("d", f.read(8))[0]
+            self.t_offset = unpack("d", f.read(8))[0]
             self.t_min = unpack("q", f.read(8))[0]
             self.t_max = unpack("q", f.read(8))[0]
             self.x_scale = unpack("d", f.read(8))[0]
             self.y_scale = unpack("d", f.read(8))[0]
             self.z_scale = unpack("d", f.read(8))[0]
-            self.x_offset =	unpack("d", f.read(8))[0]
-            self.y_offset =	unpack("d", f.read(8))[0]
-            self.z_offset =	unpack("d", f.read(8))[0]
+            self.x_offset = unpack("d", f.read(8))[0]
+            self.y_offset = unpack("d", f.read(8))[0]
+            self.z_offset = unpack("d", f.read(8))[0]
             self.x_min = unpack("d", f.read(8))[0]
             self.x_max = unpack("d", f.read(8))[0]
             self.y_min = unpack("d", f.read(8))[0]
@@ -68,7 +68,6 @@ class PulseWaves(object):
                     for x in range(vlr.record.num_samplings):
                         vlr.sampling_records[x] = SamplingRecord(f)
 
-                                    
                 #if VLR not a scanner or pulse descriptor just read data but do not parse
                 #TODO: add additional vlr types                        
                 else:        
@@ -98,14 +97,14 @@ class PulseRecord(object):
             f.seek(header.offset_to_pulses + pulse_number * header.pulse_size)
             self.gps_timestamp = header.t_scale * unpack("q", f.read(8))[0] + header.t_offset
             self.offset_to_waves = unpack("q", f.read(8))[0]
-            self.x_anchor =	header.x_scale * unpack("=l", f.read(4))[0] + header.x_offset
+            self.x_anchor = header.x_scale * unpack("=l", f.read(4))[0] + header.x_offset
             self.y_anchor = header.y_scale * unpack("=l", f.read(4))[0] + header.y_offset
             self.z_anchor = header.z_scale * unpack("=l", f.read(4))[0] + header.z_offset
-            self.x_target =	header.x_scale * unpack("=l", f.read(4))[0] + header.x_offset
-            self.y_target =	header.y_scale * unpack("=l", f.read(4))[0] + header.y_offset
-            self.z_target =	header.z_scale * unpack("=l", f.read(4))[0] + header.z_offset
-            self.first_return =  unpack("h", f.read(2))[0]
-            self.last_return = 	 unpack("h", f.read(2))[0]
+            self.x_target = header.x_scale * unpack("=l", f.read(4))[0] + header.x_offset
+            self.y_target = header.y_scale * unpack("=l", f.read(4))[0] + header.y_offset
+            self.z_target = header.z_scale * unpack("=l", f.read(4))[0] + header.z_offset
+            self.first_return = unpack("h", f.read(2))[0]
+            self.last_return = unpack("h", f.read(2))[0]
             self.pulse_number = pulse_number
             bits = []
             for bit in f.read(2):
