@@ -92,6 +92,7 @@ class PulseWaves(object):
     def export(self, pulse_records = None, filename = None, compression = 'gzip'):
         import sys
         import h5py
+        from time import time
 
         if pulse_records is None:
             pulse_records = range(self.num_pulses)
@@ -111,9 +112,11 @@ class PulseWaves(object):
         #iterate through pulse records
         m = 0
         k = 0
+        t0 = time()
         for i in pulse_records:
             if show_progress:
-                sys.stdout.write('\b'*50+' %01d%% export pulse %06d' % (int(100 * i/self.num_pulses), i))
+                dt = time() - t0
+                sys.stdout.write('\b'*50+' %01d%% reading %05d pulse records per second' % (int(100 * i/self.num_pulses), int(i/dt)))
                 sys.stdout.flush()
 
             r = PulseRecord(self, i)
