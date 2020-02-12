@@ -39,8 +39,8 @@ corresponds to a sample. The same holds true for the dataset *XYZ*,
 except that this dataset has three columns; one for each coordinate
 (double). Which row corresponds to which **Pulse Record** is encoded
 by the *Index* dataset (integer). Hence, the following would plot
-the first 10 returning waveforms (all segments) with their amplitudes
-on the y-axis and the elevation on the x-axis:
+the ten returning waveforms (all segments) from record 780 to 790 with
+their amplitudes on the y-axis and the elevation on the x-axis:
 
 ```python
 import h5py
@@ -51,20 +51,25 @@ amp = g['Amplitude']
 xyz = g['XYZ']
 idx = g['Index']
 
-fg = pl.figure()
+fg = pl.figure(1, (8, 6))
+ax = fg.add_subplot(111)
 
-for i in range(10):
+for i in range(780, 790):
     a = amp[idx[i]:idx[i+1], :]
     z = xyz[idx[i]:idx[i+1], 2]
     z = z[a[:,1] > 0]
     a = a[a[:,1] > 0, 0]
-    pl.plot(z, a, label = 'pulse %i' % i)
+    ax.plot(z, a, label = 'pulse %i' % i)
 
-pl.xlabel('Elevation [m]')
-pl.ylabel('Amplitude')
+ax.set_xlabel('Elevation [m]')
+ax.set_ylabel('Amplitude')
+
 pl.legend()
+pl.tight_layout()
 pl.show()
 ```
+
+![pulse waves 2D plot](./img/pulsewaves_2d_plot.png "Pulse Waves 2D plot")
 
 Showing the same waveforms in a 3D plot:
 
@@ -78,20 +83,24 @@ amp = g['Amplitude']
 xyz = g['XYZ']
 idx = g['Index']
 
-a = amp[:idx[10]]
-p = xyz[:idx[10]]
+a = amp[idx[780]:idx[790]]
+p = xyz[idx[780]:idx[790]]
 p = p[a[:,1] > 0, :]
 a = a[a[:,1] > 0, 0]
 x, y, z = p.T
 
-fg = pl.figure()
+fg = pl.figure(1, (8, 6))
 ax = fg.add_subplot(111, projection = '3d')
 ax.scatter(x, y, z, c = np.log10(a))
-pl.xlabel('UTM X [m]')
-pl.ylabel('UTM Y [m]')
-pl.zlabel('Elevation [m]')
+ax.set_xlabel('UTM X [m]')
+ax.set_ylabel('UTM Y [m]')
+ax.set_zlabel('Elevation [m]')
+
+pl.tight_layout()
 pl.show()
 ```
+
+![pulse waves 3D scatter plot](./img/pulsewaves_3d_scatter.png "Pulse Waves 3D scatter plot")
 
 Alternatively, one can load individual **Pulse Records** and **Waves**.
 This is done as in the original Python2 version of this module:
