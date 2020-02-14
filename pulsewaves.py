@@ -1,14 +1,25 @@
+import sys
 from struct import unpack
 import numpy as np
 
 class PulseWaves(object):
+    '''
+    Main class initiated with a PLS file (not PLZ).
+    Generally, this is all you need to import:
+
+    >>> from pulsewaves import PulseWaves
+    >>> f = PulseWaves('sample.pls')
+    '''
     def __init__(self, pls_file):
+        if pls_file[-3:] != 'pls':
+            sys.exit("error: reader assumes lower case file endings and only works for the uncompressed format (.pls).")
+
         with open(pls_file, 'rb') as f:
             #read header
             self.filename = pls_file
             self.file_sig = f.read(16).decode("utf-8").strip("\x00")
             if self.file_sig != 'PulseWavesPulse':
-                sys.exit("%s is not in a valid pulse file format!" % pls_file)
+                sys.exit("error: %s is not in a valid pulse file format." % pls_file)
             self.global_params = unpack("=L", f.read(4))[0]
             self.file_id = unpack("=L", f.read(4))[0]
             self.proj_GUID1 = unpack("=L", f.read(4))[0]
@@ -76,6 +87,13 @@ class PulseWaves(object):
                 self.vlrs[vlr.record_id] = vlr
 
     def get_pulse(self, pulse_number):
+        '''
+        Returns a PulseRecord instance by pulse number.
+
+        >>> from pulsewaves import PulseWaves
+        >>> f = PulseWaves('sample.pls')
+        >>> r = f.get_pulse(0)
+        '''
         #check if pulse number if within range of expected number of pulse
         if pulse_number > self.num_pulses or pulse_number < 0:
             sys.exit("Pulse number outside the range of expected values")
@@ -83,6 +101,13 @@ class PulseWaves(object):
         return PulseRecord(self, pulse_number)
                 
     def get_waves(self, pulse_record):    
+        '''
+        Returns a Waves instance by pulse number.
+
+        >>> from pulsewaves import PulseWaves
+        >>> f = PulseWaves('sample.pls')
+        >>> w = f.get_waves(0)
+        '''
         #if a pulse number is given get the corresponding pulse record
         if type(pulse_record) == int:
             pulse_record = self.get_pulse(pulse_record)
@@ -90,6 +115,13 @@ class PulseWaves(object):
         return Waves(self, pulse_record)
 
     def export(self, pulse_records = None, filename = None, compression = 'gzip'):
+        '''
+        Exports pulse records to an HDF5 file.
+
+        >>> from pulsewaves import PulseWaves
+        >>> f = PulseWaves('sample.pls')
+        >>> f.export()
+        '''
         import sys
         import h5py
         from time import time
