@@ -1,3 +1,4 @@
+import sys
 from struct import unpack
 import numpy as np
 
@@ -10,12 +11,15 @@ class PulseWaves(object):
     >>> f = PulseWaves('sample.pls')
     '''
     def __init__(self, pls_file):
+        if pls_file[-3:] != 'pls':
+            sys.exit("error: reader assumes lower case file endings and only works for the uncompressed format (.pls).")
+
         with open(pls_file, 'rb') as f:
             #read header
             self.filename = pls_file
             self.file_sig = f.read(16).decode("utf-8").strip("\x00")
             if self.file_sig != 'PulseWavesPulse':
-                sys.exit("%s is not in a valid pulse file format!" % pls_file)
+                sys.exit("error: %s is not in a valid pulse file format." % pls_file)
             self.global_params = unpack("=L", f.read(4))[0]
             self.file_id = unpack("=L", f.read(4))[0]
             self.proj_GUID1 = unpack("=L", f.read(4))[0]
